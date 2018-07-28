@@ -4,29 +4,24 @@ import time
 
 def monitor_callback(channel):
     measurement = GPIO.input(channel)
-    print()
-    if measurement:
-        print('{} {}: {}'.format(channel, measurement, time.perf_counter()))
-    print()
+    print('{},{},{}'.format(channel, measurement, time.perf_counter()))
  
 
 class VibrationMonitor:
 
-    def __init__(self, *channels, wait_seconds=0.1):
+    def __init__(self, *channels, bouncetime=300):
         self.channels = channels
-        self.wait_seconds = wait_seconds
         
         # setup GPIO
         GPIO.setmode(GPIO.BCM)
         for channel in self.channels:
             GPIO.setup(channel, GPIO.IN)
-            GPIO.add_event_detect(channel, GPIO.BOTH, bouncetime=300)
+            GPIO.add_event_detect(channel, GPIO.BOTH, bouncetime=bouncetime)
             GPIO.add_event_callback(channel, monitor_callback)
         
     def monitor(self):
-        wait = self.wait_seconds
         while True:
-            time.sleep(wait) 
+            pass
 
 
 if __name__ == '__main__':
@@ -37,6 +32,10 @@ if __name__ == '__main__':
                         type=int,
                         required=True,
                         help='Raspberry Pi GPIO Data BCM channel number(s)')
+    parser.add_argument('-b', '--bouncetime',
+                        type=int,
+                        default=300,
+                        help='GPIO Event detect "bouncetime" [DEFAULT=300]')
     args = parser.parse_args()
 
     monitor = VibrationMonitor(*args.channels)
